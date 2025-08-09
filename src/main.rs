@@ -34,6 +34,8 @@ mod truncatedstrview;
 mod types;
 mod viewer;
 mod yamlparser;
+mod config;
+mod highlighter;
 
 use app::App;
 use options::{DataFormat, Opt};

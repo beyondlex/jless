@@ -1,9 +1,18 @@
 use std::fmt::{Result, Write};
+use serde::Deserialize;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Color {
     C16(u8),
     Default,
+    Hex(u32),
+}
+
+impl Color {
+    pub fn from_hex(hex: &str) -> Option<Self> {
+        let hex = hex.trim_start_matches('#');
+        u32::from_str_radix(hex, 16).ok().map(Color::Hex)
+    }
 }
 
 // Commented out colors are unused.
@@ -26,7 +35,7 @@ pub const LIGHT_BLUE: Color = Color::C16(12);
 // pub const LIGHT_WHITE: Color = Color::C16(15);
 pub const DEFAULT: Color = Color::Default;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Deserialize)]
 pub struct Style {
     pub fg: Color,
     pub bg: Color,
@@ -140,6 +149,12 @@ impl Terminal for AnsiTerminal {
             match color {
                 Color::C16(c) => write!(self, "\x1b[38;5;{c}m")?,
                 Color::Default => write!(self, "\x1b[39m")?,
+                Color::Hex(rgb) => {
+                    let r = (rgb >> 16) as u8;
+                    let g = (rgb >> 8) as u8;
+                    let b = rgb as u8;
+                    write!(self, "\x1b[38;2;{r};{g};{b}m")?;
+                }
             }
             self.style.fg = color;
         }
@@ -151,6 +166,12 @@ impl Terminal for AnsiTerminal {
             match color {
                 Color::C16(c) => write!(self, "\x1b[48;5;{c}m")?,
                 Color::Default => write!(self, "\x1b[49m")?,
+                Color::Hex(rgb) => {
+                    let r = (rgb >> 16) as u8;
+                    let g = (rgb >> 8) as u8;
+                    let b = rgb as u8;
+                    write!(self, "\x1b[48;2;{r};{g};{b}m")?;
+                }
             }
             self.style.bg = color;
         }
@@ -238,6 +259,7 @@ pub mod test {
             match self {
                 Color::C16(c) => write!(f, "{}", COLOR_NAMES.get(*c as usize).unwrap_or(&"?")),
                 Color::Default => write!(f, "Default"),
+                Color::Hex(v) => write!(f, "{}", v),
             }
         }
     }

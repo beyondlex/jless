@@ -5,8 +5,8 @@ use std::iter::Peekable;
 use std::ops::Range;
 
 use regex::Regex;
-
 use crate::flatjson::{FlatJson, OptionIndex, Row, Value};
+use crate::highlighter::Highlighter;
 use crate::highlighting;
 use crate::search::MatchRangeIter;
 use crate::terminal;
@@ -138,6 +138,7 @@ pub struct LineNumber {
 
 pub struct LinePrinter<'a, 'b> {
     pub mode: Mode,
+    pub highlighter: &'a Highlighter,
     pub terminal: &'a mut dyn Terminal,
 
     // The entire FlatJson data structure and the specific line
@@ -375,8 +376,8 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
             self.terminal,
             delimiter.left(),
             label_open_delimiter_range_start,
-            style,
-            highlighted_style,
+            &style,
+            &highlighted_style,
             &mut matches,
             self.focused_search_match,
         )?;
@@ -387,8 +388,8 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
             label_ref,
             &truncated_view,
             label_range_start,
-            style,
-            highlighted_style,
+            &style,
+            &highlighted_style,
             &mut matches,
             self.focused_search_match,
         )?;
@@ -398,8 +399,8 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
             self.terminal,
             delimiter.right(),
             label_close_delimiter_range_start,
-            style,
-            highlighted_style,
+            &style,
+            &highlighted_style,
             &mut matches,
             self.focused_search_match,
         )?;
@@ -468,30 +469,44 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
         }
     }
 
-    fn get_label_styles(&self) -> (&'static Style, &'static Style) {
+    fn get_label_styles(&self) -> (Style, Style) {
         match self.label_type() {
             LabelType::Key => {
                 if self.focused {
                     (
-                        &highlighting::INVERTED_BOLD_BLUE_STYLE,
-                        &highlighting::BOLD_INVERTED_STYLE,
+                        self.highlighter.style("obj_key_focused"),
+                        self.highlighter.style("obj_key_hl_focused"),
+                        // &highlighting::INVERTED_BOLD_BLUE_STYLE,
+                        // &highlighting::BOLD_INVERTED_STYLE,
+                        // highlighting::get_style(""),
+                        // highlighting::get_style(""),
                     )
                 } else {
                     (
-                        &highlighting::BLUE_STYLE,
-                        &highlighting::SEARCH_MATCH_HIGHLIGHTED,
+                        self.highlighter.style("obj_key"),
+                        self.highlighter.style("obj_key_hl"),
+                        // highlighting::get_style(""),
+                        // highlighting::get_style(""),
+                        // &highlighting::BLUE_STYLE,
+                        // &highlighting::SEARCH_MATCH_HIGHLIGHTED,
                     )
                 }
             }
             LabelType::Index => {
                 let style = if self.focused {
-                    &highlighting::BOLD_INVERTED_STYLE
+                    // highlighting::get_style("")
+                    self.highlighter.style("obj_key")
+                    // &highlighting::BOLD_INVERTED_STYLE
                 } else {
-                    &highlighting::DIMMED_STYLE
+                    self.highlighter.style("obj_key_hl")
+                    // highlighting::get_style("")
+                    // &highlighting::DIMMED_STYLE
                 };
 
                 // No match highlighting for index labels.
-                (style, &highlighting::DEFAULT_STYLE)
+                // (style, &highlighting::DEFAULT_STYLE)
+                // (style, highlighting::get_style(""))
+                (style, self.highlighter.default_style())
             }
         }
     }
@@ -1198,7 +1213,6 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
 #[cfg(test)]
 mod tests {
     use unicode_width::UnicodeWidthStr;
-
     use crate::flatjson::{parse_top_level_json, parse_top_level_yaml};
     use crate::terminal::test::{TextOnlyTerminal, VisibleEscapesTerminal};
     use crate::terminal::{BLUE, LIGHT_BLUE};
@@ -1212,8 +1226,12 @@ mod tests {
         flatjson: &'a FlatJson,
         index: usize,
     ) -> LinePrinter<'a, 'a> {
+        
         LinePrinter {
             mode: Mode::Data,
+            highlighter: &Highlighter {
+                highlight: None,
+            },
             terminal,
             flatjson,
             row: &flatjson[index],

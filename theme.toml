@@ -1,0 +1,9 @@
+
+[themes]
+obj_key = {inverte = false, bold = false, dimmed = false}
+obj_key_focused = {fg = "#aa00ff", bg = "#fff000", inverte = false, bold = false, dimmed = false}
+
+obj_key_hl = {fg = "#ffffff", bg = "#ff013f", inverte = false, bold = false, dimmed = false}
+obj_key_hl_focused = {fg = "#ff10bb", bg = "#00ffff", inverte = true, bold = true, dimmed = false}
+
+# todo: dark/light mode

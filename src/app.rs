@@ -11,8 +11,9 @@ use termion::event::MouseButton::{Left, WheelDown, WheelUp};
 use termion::event::MouseEvent::Press;
 use termion::raw::RawTerminal;
 use termion::screen::{ToAlternateScreen, ToMainScreen};
-
+use crate::config::load_hl_config;
 use crate::flatjson;
+use crate::highlighter::Highlighter;
 use crate::input::TuiEvent;
 use crate::input::TuiEvent::{KeyEvent, MouseEvent, WinChEvent};
 use crate::jsonstringunescaper::{safe_unescape_json_string, UnescapeError};
@@ -26,6 +27,7 @@ use crate::viewer::{Action, JsonViewer, Mode};
 pub struct App {
     viewer: JsonViewer,
     screen_writer: ScreenWriter,
+    highlighter: Highlighter,
     input_state: InputState,
     input_buffer: Vec<u8>,
     input_filename: String,
@@ -125,6 +127,15 @@ impl App {
 
         let mut viewer = JsonViewer::new(flatjson, opt.mode);
         viewer.scrolloff_setting = opt.scrolloff;
+        
+        // load theme config (todo: from config path)
+        let hl_config = load_hl_config("theme.toml")
+            .unwrap_or_else(|err| {
+                // todo: write to log path
+                eprintln!("Error loading theme config: {}", err);
+                None
+            });
+        let highlighter = Highlighter::new(hl_config);
 
         let screen_writer =
             ScreenWriter::init(opt, stdout, Editor::<()>::new(), TTYDimensions::default());
@@ -132,6 +143,7 @@ impl App {
         Ok(App {
             viewer,
             screen_writer,
+            highlighter,
             input_state: InputState::Default,
             input_buffer: vec![],
             input_filename,
@@ -585,6 +597,7 @@ impl App {
     fn draw_screen(&mut self) {
         self.screen_writer.print(
             &self.viewer,
+            &self.highlighter,
             &self.input_buffer,
             &self.input_filename,
             &self.search_state,

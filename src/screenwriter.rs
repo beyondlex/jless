@@ -10,6 +10,7 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::app::MAX_BUFFER_SIZE;
 use crate::flatjson::{Index, OptionIndex, PathType, Row, Value};
+use crate::highlighter::Highlighter;
 use crate::lineprinter as lp;
 use crate::lineprinter::LineNumber;
 use crate::options::Opt;
@@ -75,17 +76,18 @@ impl ScreenWriter {
     pub fn print(
         &mut self,
         viewer: &JsonViewer,
+        highlighter: &Highlighter,
         input_buffer: &[u8],
         input_filename: &str,
         search_state: &SearchState,
         message: &Option<(String, MessageSeverity)>,
     ) {
-        self.print_viewer(viewer, search_state);
+        self.print_viewer(viewer, highlighter, search_state);
         self.print_status_bar(viewer, input_buffer, input_filename, search_state, message);
     }
 
-    pub fn print_viewer(&mut self, viewer: &JsonViewer, search_state: &SearchState) {
-        match self.print_screen_impl(viewer, search_state) {
+    pub fn print_viewer(&mut self, viewer: &JsonViewer, highlighter: &Highlighter, search_state: &SearchState) {
+        match self.print_screen_impl(viewer, highlighter, search_state) {
             Ok(_) => match self.terminal.flush_contents(&mut self.stdout) {
                 Ok(_) => {}
                 Err(e) => {
@@ -128,6 +130,7 @@ impl ScreenWriter {
     fn print_screen_impl(
         &mut self,
         viewer: &JsonViewer,
+        highlighter: &Highlighter,
         search_state: &SearchState,
     ) -> std::fmt::Result {
         let mut line = OptionIndex::Index(viewer.top_row);
@@ -149,6 +152,7 @@ impl ScreenWriter {
                 OptionIndex::Index(index) => {
                     self.print_line(
                         viewer,
+                        highlighter,
                         row_index,
                         index,
                         delta_to_focused_row,
@@ -186,6 +190,7 @@ impl ScreenWriter {
     fn print_line(
         &mut self,
         viewer: &JsonViewer,
+        highlighter: &Highlighter,
         screen_index: u16,
         index: Index,
         delta_to_focused_row: isize,
@@ -256,6 +261,7 @@ impl ScreenWriter {
         let mut line = lp::LinePrinter {
             mode: viewer.mode,
             terminal: &mut self.terminal,
+            highlighter,
 
             flatjson: &viewer.flatjson,
             row,
