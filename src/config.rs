@@ -10,13 +10,44 @@ pub struct Config {
     pub themes: ThemesConfig
 }
 
-pub type ThemesConfig = HashMap<String, Option<StyleConfig>>;
-pub type Themes = HashMap<String, Style>;
+#[derive(Copy, Clone, Deserialize)]
+pub struct Styles {
+    pub default: Style,
+    pub default_matched: Style,
+    pub focused: Style,
+    pub focused_matched: Style,
+}
+impl Default for Styles {
+    fn default() -> Self {
+        Styles {
+            default: Style::default(),
+            default_matched: Style::default(),
+            focused: Style::default(),
+            focused_matched: Style::default(),
+        }
+    }
+}
+
+pub type ThemesConfig = HashMap<String, Vec<Option<StyleConfig>>>;
+pub type Themes = HashMap<String, Styles>;
 
 fn themes_config_to_themes(value: ThemesConfig) -> Themes {
     let mut themes = HashMap::new();
-    for (name, style_config) in value {
-        themes.insert(name, cfg_to_style(style_config));
+    for (name, style_configs) in value {
+        let mut i = 0;
+        let mut styles = Styles::default();
+        for config in style_configs {
+            let style = cfg_to_style(config);
+            match i {
+                0 => styles.default = style,
+                1 => styles.default_matched = style,
+                2 => styles.focused = style,
+                3 => styles.focused_matched = style,
+                _ => {}
+            }
+            i += 1;
+        }
+        themes.insert(name, styles);
     }
     themes
 }

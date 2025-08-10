@@ -1,9 +1,74 @@
 
+# focused   hl
+# N         N
+# Y         N
+# N         Y
+# Y         Y
+
+# N N
+# obj_key.blur.normal = {inverted = false, bold = false, dimmed = false}
+# # Y N
+# obj_key.focused.normal = {fg = "#ffffff", bg = "#000000", inverted = false, bold = true, dimmed = false}
+# # N Y
+# obj_key.blur.hl = {fg = "#ffffff", bg = "#ff013f", inverted = false, bold = false, dimmed = false}
+# # Y Y
+# obj_key.focused.hl = {fg = "#ff013f", bg = "#fff000", inverted = true, bold = true, dimmed = false}
+
+
 [themes]
-obj_key = {inverte = false, bold = false, dimmed = false}
-obj_key_focused = {fg = "#aa00ff", bg = "#fff000", inverte = false, bold = false, dimmed = false}
+object_label = [
+{inverted = false, bold = false, dimmed = false}, # default
+{fg = "#000000", bg = "#fff000", inverted = false, bold = true, dimmed = false}, # default matched
+{fg = "#ff013f", bg = "#ffffff", inverted = true, bold = true, dimmed = false}, # focused
+{fg = "#fff000", bg = "#000000", inverted = true, bold = true, dimmed = false}, # focused matched
+]
+object_label_index = [
+{inverted = false, bold = false, dimmed = false}, # default
+{fg = "#000000", bg = "#fff000", inverted = false, bold = true, dimmed = false}, # default matched
+{fg = "#ff013f", bg = "#ffffff", inverted = true, bold = true, dimmed = false}, # focused
+{fg = "#fff000", bg = "#000000", inverted = true, bold = true, dimmed = false}, # focused matched
+]
 
-obj_key_hl = {fg = "#ffffff", bg = "#ff013f", inverte = false, bold = false, dimmed = false}
-obj_key_hl_focused = {fg = "#ff10bb", bg = "#00ffff", inverte = true, bold = true, dimmed = false}
+array_label = [
+{inverted = false, bold = false, dimmed = false}, # default
+{fg = "#ffffff", bg = "#000000", inverted = false, bold = true, dimmed = false}, # default matched
+{fg = "#ffffff", bg = "#ff013f", inverted = false, bold = false, dimmed = false}, # focused
+{fg = "#ff013f", bg = "#fff000", inverted = true, bold = true, dimmed = false}, # focused matched
+]
 
-# todo: dark/light mode
+container_delimiter = [
+{inverted = false, bold = false, dimmed = false}, # default
+{fg = "#ffffff", bg = "#000000", inverted = false, bold = true, dimmed = false}, # default matched
+{fg = "#ffffff", bg = "#ff013f", inverted = false, bold = false, dimmed = false}, # focused
+{fg = "#ff013f", bg = "#fff000", inverted = true, bold = true, dimmed = false}, # focused matched
+]
+
+container_preview = [
+{inverted = false, bold = false, dimmed = false}, # default
+{fg = "#ffffff", bg = "#000000", inverted = false, bold = true, dimmed = false}, # default matched
+{fg = "#ffffff", bg = "#ff013f", inverted = false, bold = false, dimmed = false}, # focused
+{fg = "#ff013f", bg = "#fff000", inverted = true, bold = true, dimmed = false}, # focused matched
+]
+
+null = [
+{fg = "#dddddd", inverted = false, bold = false, dimmed = false}, # default
+{bg = "#fff000", inverted = true, bold = true, dimmed = false}, # default matched
+]
+
+boolean = [
+{fg = "#f26100", inverted = false, bold = false, dimmed = false}, # default
+{bg = "#fff000", inverted = true, bold = true, dimmed = false}, # default matched
+]
+
+number = [
+{fg = "#dc35ea", inverted = false, bold = false, dimmed = false}, # default
+{bg = "#fff000", inverted = true, bold = true, dimmed = false}, # default matched
+]
+
+string = [
+{fg = "#009700", inverted = false, bold = false, dimmed = false}, # default
+{bg = "#fff000", inverted = true, bold = true, dimmed = false}, # default matched
+]
+
+empty_obj = []
+

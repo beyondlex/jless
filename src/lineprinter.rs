@@ -5,6 +5,7 @@ use std::iter::Peekable;
 use std::ops::Range;
 
 use regex::Regex;
+use crate::config::Styles;
 use crate::flatjson::{FlatJson, OptionIndex, Row, Value};
 use crate::highlighter::Highlighter;
 use crate::highlighting;
@@ -472,40 +473,35 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
     fn get_label_styles(&self) -> (Style, Style) {
         match self.label_type() {
             LabelType::Key => {
+                let styles = self.highlighter.style("object_label");
                 if self.focused {
                     (
-                        self.highlighter.style("obj_key_focused"),
-                        self.highlighter.style("obj_key_hl_focused"),
+                        styles.focused,
+                        styles.focused_matched,
                         // &highlighting::INVERTED_BOLD_BLUE_STYLE,
                         // &highlighting::BOLD_INVERTED_STYLE,
-                        // highlighting::get_style(""),
-                        // highlighting::get_style(""),
                     )
                 } else {
                     (
-                        self.highlighter.style("obj_key"),
-                        self.highlighter.style("obj_key_hl"),
-                        // highlighting::get_style(""),
-                        // highlighting::get_style(""),
+                        styles.default,
+                        styles.default_matched,
                         // &highlighting::BLUE_STYLE,
                         // &highlighting::SEARCH_MATCH_HIGHLIGHTED,
                     )
                 }
             }
             LabelType::Index => {
+                let styles = self.highlighter.style("object_label_index");
                 let style = if self.focused {
-                    // highlighting::get_style("")
-                    self.highlighter.style("obj_key")
+                    styles.focused
                     // &highlighting::BOLD_INVERTED_STYLE
                 } else {
-                    self.highlighter.style("obj_key_hl")
-                    // highlighting::get_style("")
+                    self.highlighter.dimmed()
                     // &highlighting::DIMMED_STYLE
                 };
 
                 // No match highlighting for index labels.
                 // (style, &highlighting::DEFAULT_STYLE)
-                // (style, highlighting::get_style(""))
                 (style, self.highlighter.default_style())
             }
         }
@@ -520,7 +516,8 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
 
         let mut value_ref = &self.flatjson.1[self.row.range.clone()];
         let mut quoted = false;
-        let color = Self::color_for_value_type(&self.row.value);
+        // let color = Self::color_for_value_type(&self.row.value);
+        let styles = &self.styles_for_value_type(&self.row.value);
 
         // Strip quotes from strings.
         if self.row.is_string() {
@@ -554,10 +551,10 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
         }
 
         // Print out the value.
-        let style = Style {
-            fg: color,
-            ..Style::default()
-        };
+        // let style = Style {
+        //     fg: color,
+        //     ..Style::default()
+        // };
 
         let delimiter = if quoted {
             DelimiterPair::Quote
@@ -574,7 +571,8 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
             value_ref,
             &truncated_view,
             Some(self.row.range.clone()),
-            (&style, &highlighting::SEARCH_MATCH_HIGHLIGHTED),
+            // (&style, &highlighting::SEARCH_MATCH_HIGHLIGHTED),
+            (&styles.default, &styles.default_matched),
         )?;
 
         if self.trailing_comma {
@@ -665,6 +663,20 @@ impl<'a, 'b> LinePrinter<'a, 'b> {
                     })
             })
             .unwrap_or_else(|| TruncatedStrView::init_start(value_ref, available_space))
+    }
+
+    fn styles_for_value_type(&self, value: &Value) -> Styles {
+        debug_assert!(value.is_primitive());
+
+        match value {
+            Value::Null => self.highlighter.style("null"),
+            Value::Boolean => self.highlighter.style("boolean"),
+            Value::Number => self.highlighter.style("number"),
+            Value::String => self.highlighter.style("string"),
+            Value::EmptyObject => self.highlighter.style("empty_object"),
+            Value::EmptyArray => self.highlighter.style("empty_array"),
+            _ => unreachable!(),
+        }
     }
 
     fn color_for_value_type(value: &Value) -> Color {

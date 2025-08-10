@@ -1,4 +1,4 @@
-use crate::config::{Themes};
+use crate::config::{Styles, Themes};
 use crate::terminal::{Color, Style};
 
 pub struct Highlighter {
@@ -12,11 +12,21 @@ impl Highlighter {
         }
     }
     
-    pub fn style(&self, key:&str) -> Style {
+    pub fn style(&self, key:&str) -> Styles {
         if self.highlight.is_none() {
-            self.default_style()
+            Styles::default()
         } else {
-            self.highlight.as_ref().unwrap().get(key).unwrap_or(&self.default_style()).clone()
+            self.highlight.as_ref().unwrap().get(key).unwrap_or(&Styles::default()).clone()
+        }
+    }
+    
+    pub fn dimmed(&self) -> Style {
+        Style {
+            fg: Color::Default,
+            bg: Color::Default,
+            inverted: false,
+            bold: false,
+            dimmed: true,
         }
     }
     
