@@ -1,14 +1,26 @@
-use crate::config::{Styles, Themes};
+use crate::config::{default_themes, Styles, Themes};
 use crate::terminal::{Color, Style};
 
 pub struct Highlighter {
     pub highlight: Option<Themes>,
 }
 
+impl Default for Highlighter {
+    fn default() -> Self {
+        Highlighter { 
+            highlight: Some(default_themes()), 
+        }
+    }
+}
+
 impl Highlighter {
     pub fn new(theme_config: Option<Themes>) -> Self {
-        Self {
-            highlight: theme_config
+        if theme_config.is_none() {
+            Highlighter::default()
+        } else {
+            Self {
+                highlight: theme_config
+            }
         }
     }
     
@@ -19,7 +31,7 @@ impl Highlighter {
             self.highlight.as_ref().unwrap().get(key).unwrap_or(&Styles::default()).clone()
         }
     }
-    
+
     pub fn dimmed(&self) -> Style {
         Style {
             fg: Color::Default,
@@ -29,7 +41,7 @@ impl Highlighter {
             dimmed: true,
         }
     }
-    
+
     pub fn default_style(&self) -> Style {
         Style {
             fg: Color::Default,

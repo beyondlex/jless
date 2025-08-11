@@ -128,8 +128,8 @@ impl App {
         let mut viewer = JsonViewer::new(flatjson, opt.mode);
         viewer.scrolloff_setting = opt.scrolloff;
         
-        // load theme config (todo: from config path)
-        let hl_config = load_hl_config("theme.toml")
+        // load theme config
+        let hl_config = load_hl_config()
             .unwrap_or_else(|err| {
                 // todo: write to log path
                 eprintln!("Error loading theme config: {}", err);

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::fs;
-
+use std::{env, fs};
+use std::path::PathBuf;
 use serde::{Deserialize, Deserializer};
 use std::str::FromStr;
 use crate::terminal::{Color, Style};
@@ -116,8 +116,171 @@ impl FromStr for Color {
     }
 }
 
-pub fn load_hl_config(path: &str) -> Result<Option<Themes>, Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
-    let config = toml::from_str::<Config>(&content).unwrap();
-    Ok(Some(themes_config_to_themes(config.themes)))
+pub fn load_hl_config() -> Result<Option<Themes>, Box<dyn std::error::Error>> {
+    let config_path = config_path();
+    if  let Some(path) = config_path {
+        let content = fs::read_to_string(path)?;
+        let config = toml::from_str::<Config>(&content).unwrap();
+        Ok(Some(themes_config_to_themes(config.themes)))
+    } else {
+        Ok(None)
+    }
+}
+
+#[cfg(not(windows))]
+pub fn config_path() -> Option<PathBuf> {
+    let file_name = "jless.toml";
+
+    xdg::BaseDirectories::with_prefix("jless")
+        .find_config_file(&file_name)
+        .or_else(|| {
+            xdg::BaseDirectories::new()
+                .find_config_file(&file_name)
+        })
+        .or_else(|| {
+            if let Ok(home) = env::var("HOME") {
+                // $HOME/.config/jless/jless.toml
+                let fallback = PathBuf::from(&home).join(".config/jless").join(&file_name);
+                if fallback.exists() {
+                    return Some(fallback);
+                }
+                // $HOME/.jless.toml
+                let fallback = PathBuf::from(&home).join(format!(".{file_name}"));
+                if fallback.exists() {
+                    return Some(fallback);
+                }
+            }
+            None
+        })
+}
+
+#[cfg(windows)]
+pub fn config_path() -> Option<PathBuf> {
+    let file_name = format!("jless.toml");
+    dirs::config_dir().map(|path| path.join("jless").join(file_name)).filter(|new| new.exists())
+}
+
+
+pub fn default_themes() -> Themes {
+    let mut themes = HashMap::new();
+    themes.insert("object_label".to_string(), Styles {
+        default: Style::default(),
+        default_matched: Style {
+            fg: Color::Hex(0x000000),
+            bg: Color::Hex(0xfff000),
+            inverted: false,
+            bold: true,
+            dimmed: false,
+        },
+        focused: Style {
+            fg: Color::Hex(0xff013f),
+            bg: Color::Hex(0xffffff),
+            inverted: true,
+            bold: true,
+            dimmed: false,
+        },
+        focused_matched: Style {
+            fg: Color::Hex(0xfff000),
+            bg: Color::Hex(0x000000),
+            inverted: true,
+            bold: true,
+            dimmed: false,
+        },
+    });
+
+    themes.insert("object_label_index".to_string(), Styles {
+        default: Style::default(),
+        default_matched: Style {
+            fg: Color::Hex(0x000000),
+            bg: Color::Hex(0xfff000),
+            inverted: false,
+            bold: true,
+            dimmed: false,
+        },
+        focused: Style {
+            fg: Color::Hex(0xff013f),
+            bg: Color::Hex(0xffffff),
+            inverted: true,
+            bold: true,
+            dimmed: false,
+        },
+        focused_matched: Style {
+            fg: Color::Hex(0xfff000),
+            bg: Color::Hex(0x000000),
+            inverted: true,
+            bold: true,
+            dimmed: false,
+        },
+    });
+    themes.insert("array_label".to_string(), Styles {
+        default: Style::default(),
+        default_matched: Style::default(),
+        focused: Style::default(),
+        focused_matched: Style::default(),
+    });
+    themes.insert("container_delimiter".to_string(), Styles {
+        default: Style::default(),
+        default_matched: Style::default(),
+        focused: Style::default(),
+        focused_matched: Style::default(),
+    });
+    themes.insert("container_preview".to_string(), Styles {
+        default: Style::default(),
+        default_matched: Style::default(),
+        focused: Style::default(),
+        focused_matched: Style::default(),
+    });
+    themes.insert("null".to_string(), Styles {
+        default: Style {
+            fg: Color::Hex(0xdddddd),
+            .. Default::default()
+        },
+        default_matched: Style {
+            bg: Color::Hex(0xfff000),
+            inverted: true,
+            bold: true,
+            .. Default::default()
+        },
+        ..Default::default()
+    });
+    themes.insert("bool".to_string(), Styles {
+        default: Style {
+            fg: Color::Hex(0xf26100),
+            .. Default::default()
+        },
+        default_matched: Style {
+            bg: Color::Hex(0xfff000),
+            inverted: true,
+            bold: true,
+            .. Default::default()
+        },
+        ..Default::default()
+    });
+    themes.insert("number".to_string(), Styles {
+        default: Style {
+            fg: Color::Hex(0xdc35ea),
+            .. Default::default()
+        },
+        default_matched: Style {
+            bg: Color::Hex(0xfff000),
+            inverted: true,
+            bold: true,
+            .. Default::default()
+        },
+        ..Default::default()
+    });
+    themes.insert("string".to_string(), Styles {
+        default: Style {
+            fg: Color::Hex(0x9700),
+            .. Default::default()
+        },
+        default_matched: Style {
+            bg: Color::Hex(0xfff000),
+            inverted: true,
+            bold: true,
+            .. Default::default()
+        },
+        ..Default::default()
+    });
+    themes
 }
